@@ -53,21 +53,21 @@ static struct hw_module_methods_t camera_module_methods = {
 };
 
 static hw_module_t camera_common  = {
-    .tag = HARDWARE_MODULE_TAG,
-    .version_major = 1,
-    .version_minor = 1,
-    .id = CAMERA_HARDWARE_MODULE_ID,
-    .name = "Jellybean Camera Hal",
-    .author = "Raviprasad V Mummidi",
-    .methods = &camera_module_methods,
-    .dso = NULL,
-    .reserved = {0},
+    tag: HARDWARE_MODULE_TAG,
+    version_major: 1,
+    version_minor: 1,
+    id: CAMERA_HARDWARE_MODULE_ID,
+    name: "Jellybean Camera Hal",
+    author: "Raviprasad V Mummidi",
+    methods: &camera_module_methods,
+    dso: NULL,
+    reserved: {0},
 };
 
 camera_module_t HAL_MODULE_INFO_SYM = {
-    .common = camera_common,
-    .get_number_of_cameras = camera_get_number_of_cameras,
-    .get_camera_info = camera_get_camera_info,
+    common: camera_common,
+    get_number_of_cameras: camera_get_number_of_cameras,
+    get_camera_info: camera_get_camera_info,
 };
 
 typedef struct priv_camera_device {
@@ -215,20 +215,24 @@ static void wrap_data_callback_timestamp(nsecs_t timestamp, int32_t msg_type, co
 
 void CameraHAL_FixupParams(android::CameraParameters &camParams) {
     const char *video_sizes = "640x480,384x288,352x288,320x240,240x160,176x144";
-    const char *preferred_size = "480x320";
+    const char *preferred_video_size = "640x480";
 
-    camParams.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV420SP);
+#ifdef ENABLE_FLASH_AND_AUTOFOCUS
+    const char *focus_mode_values = "auto,infinity,touch";
+    const char *flash_mode_values = "auto,on,off,torch";
 
-    camParams.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO,  preferred_size);
-
-#if 0
-    if (!camParams.get(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES)) {
-         camParams.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES, video_sizes);
-    }
+    camParams.set(CameraParameters::KEY_SUPPORTED_FOCUS_MODES, focus_mode_values);
+    camParams.set(CameraParameters::KEY_SUPPORTED_FLASH_MODES, flash_mode_values);
 #endif
 
+    camParams.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV420SP);
+    camParams.set(CameraParameters::KEY_VIDEO_SIZE, preferred_video_size);
+
+    if (!camParams.get(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES)) {
+         camParams.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES, video_sizes); }
+
     if (!camParams.get(CameraParameters::KEY_MAX_NUM_FOCUS_AREAS)) {
-        camParams.set(CameraParameters::KEY_MAX_NUM_FOCUS_AREAS, 1);
+        camParams.set(CameraParameters::KEY_MAX_NUM_FOCUS_AREAS, 1); }
     }
 
     if (!camParams.get(CameraParameters::KEY_VIDEO_SIZE)) {
@@ -517,7 +521,7 @@ int camera_device_open(const hw_module_t* module, const char* name, hw_device_t*
         camera_ops->start_preview              = camera_start_preview;
         camera_ops->stop_preview               = camera_stop_preview;
         camera_ops->preview_enabled            = camera_preview_enabled;
-        //camera_ops->store_meta_data_in_buffers = camera_store_meta_data_in_buffers;
+        camera_ops->store_meta_data_in_buffers = camera_store_meta_data_in_buffers;
         camera_ops->start_recording            = camera_start_recording;
         camera_ops->stop_recording             = camera_stop_recording;
         camera_ops->recording_enabled          = camera_recording_enabled;
